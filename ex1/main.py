@@ -17,15 +17,30 @@ from models import *
 from utils import progress_bar
 from torch.autograd import Variable
 
+#import matplotlib.pyplot as plt
+#import plotly
+#import plotly.plotly as py
+#import plotly.graph_objs as go
+#plotly.tools.set_credentials_file(username='zitay.zach', api_key='2DEBzwCa8E9edY7ulxoz')
 
+import numpy as np
+import pandas as pd
+
+print("======================================================")
+print("starting...")
+print("======================================================")
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
+parser.add_argument('--name', help='name of this run')
 args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
+train_acc_vec = np.array([])
+test_acc_vec = np.array([])
+num_epochs = 200
 
 # Data
 print('==> Preparing data..')
@@ -77,7 +92,8 @@ if args.resume:
     start_epoch = checkpoint['epoch']
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
+#optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
+optimizer = optim.SGD(net.parameters(), lr=args.lr)
 
 # Training
 def train(epoch):
@@ -99,8 +115,11 @@ def train(epoch):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
-        progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-            % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+        % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    # print('\nTrain : Loss: %.3f | Acc: %.3f%% (%d/%d)'
+    #     % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    return 100.*correct/total
 
 def test(epoch):
     global best_acc
@@ -119,8 +138,10 @@ def test(epoch):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-            progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+        % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    # print('Test  : Loss: %.3f | Acc: %.3f%% (%d/%d)'
+    #     % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
     # Save checkpoint.
     acc = 100.*correct/total
@@ -136,7 +157,39 @@ def test(epoch):
         torch.save(state, './checkpoint/ckpt.t7')
         best_acc = acc
 
+    return 100.*correct/total
 
-for epoch in range(start_epoch, start_epoch+200):
-    train(epoch)
-    test(epoch)
+#def plot_acc_vs_epoch(num_epochs, train_acc_vec, test_acc_vec):
+#    #fig, ax = plt.subplots(figsize=(12, 8))
+#    #ax.plot(np.arange(num_epochs), train_acc_vec, test_acc_vec, 'r')
+#    #ax.set_xlabel('Epoch')
+#    #ax.set_ylabel('Accuracy [%]')
+#    #ax.set_title('Accuracy vs. Training Epoch')
+#
+#    trace = go.Scatter(
+#        x = np.arange(num_epochs),
+#        y = train_acc_vec
+#    )
+#
+#    data = [trace]
+#
+#    py.iplot(data, filename='basic-line')
+
+
+
+
+
+for epoch in range(start_epoch, start_epoch+num_epochs):
+    train_acc = train(epoch)
+    test_acc  = test(epoch)
+    train_acc_vec = np.append(train_acc_vec, train_acc)
+    test_acc_vec  = np.append(test_acc_vec, test_acc)
+df = pd.DataFrame({'train_acc':train_acc_vec, 'test_acc':test_acc_vec})
+if args.name:
+    csv_file = args.name + '.csv'
+else:
+    csv_file = 'train_test_acc.csv'
+
+df.to_csv(csv_file, sep='\t', encoding='utf-8')
+print('==> done')
+#df.plot('train_acc', 'test_acc')

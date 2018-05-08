@@ -42,8 +42,9 @@ def init_params(net):
                 init.constant(m.bias, 0)
 
 
-_, term_width = os.popen('stty size', 'r').read().split()
-term_width = int(term_width)
+#_, term_width = os.popen('stty size', 'r').read().split()
+#term_width = int(term_width)
+term_width = 204
 
 TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
@@ -89,7 +90,7 @@ def progress_bar(current, total, msg=None):
         sys.stdout.write('\r')
     else:
         sys.stdout.write('\n')
-    sys.stdout.flush()
+    #sys.stdout.flush()
 
 def format_time(seconds):
     days = int(seconds / 3600/24)
