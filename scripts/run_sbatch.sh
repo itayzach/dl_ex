@@ -5,7 +5,7 @@
 #SBATCH --mail-user=itay.zach@campus.technion.ac.il
 # (change to your own email if you wish to get one, or just delete this and the following lines)
 #SBATCH --mail-type=ALL # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
-#SBATCH --job-name="name"
+#SBATCH --job-name="hw1"
 #SBATCH -o out/sbatch.%j.out # stdout goes here
 #SBATCH -e out/sbatch.%j.out # stderr goes here
 echo "running $1"

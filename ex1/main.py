@@ -32,7 +32,9 @@ print("======================================================")
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
-parser.add_argument('--name', help='name of this run')
+parser.add_argument('--net', choices=['resnet', 'vgg'])
+parser.add_argument('--optim', choices=['sgd', 'sgd_mom', ' adam'])
+parser.add_argument('--nEpochs', default=200, type=int)
 args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -40,9 +42,11 @@ best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 train_acc_vec = np.array([])
 test_acc_vec = np.array([])
-num_epochs = 200
+num_epochs = args.nEpochs
 
+# =============================================================================
 # Data
+# =============================================================================
 print('==> Preparing data..')
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -64,10 +68,18 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False,
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+# =============================================================================
 # Model
+# =============================================================================
 print('==> Building model..')
-# net = VGG('VGG19')
-net = ResNet18()
+
+if args.net is resnet:
+    net = ResNet18()
+else if args.net is vgg:
+    net = VGG('VGG19')
+else:
+    print('what?')
+    exit()
 # net = PreActResNet18()
 # net = GoogLeNet()
 # net = DenseNet121()
@@ -92,10 +104,20 @@ if args.resume:
     start_epoch = checkpoint['epoch']
 
 criterion = nn.CrossEntropyLoss()
-#optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
-optimizer = optim.SGD(net.parameters(), lr=args.lr)
+if args.optim is sgd:
+    optimizer = optim.SGD(net.parameters(), lr=args.lr)
+else if args.optim is sgd_mom:
+    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
+else if args.optim is adam:
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+else:
+    print('what?')
+    exit()
 
+
+# =============================================================================
 # Training
+# =============================================================================
 def train(epoch):
     print('\nEpoch: %d' % epoch)
     net.train()
@@ -121,6 +143,9 @@ def train(epoch):
     #     % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
     return 100.*correct/total
 
+# =============================================================================
+# Test
+# =============================================================================
 def test(epoch):
     global best_acc
     net.eval()
@@ -177,18 +202,17 @@ def test(epoch):
 
 
 
-
-
+# =============================================================================
+# Go!
+# =============================================================================
 for epoch in range(start_epoch, start_epoch+num_epochs):
     train_acc = train(epoch)
     test_acc  = test(epoch)
     train_acc_vec = np.append(train_acc_vec, train_acc)
     test_acc_vec  = np.append(test_acc_vec, test_acc)
+
 df = pd.DataFrame({'train_acc':train_acc_vec, 'test_acc':test_acc_vec})
-if args.name:
-    csv_file = args.name + '.csv'
-else:
-    csv_file = 'train_test_acc.csv'
+csv_file = args.net + '_' + args.optim + '.csv'
 
 df.to_csv(csv_file, sep='\t', encoding='utf-8')
 print('==> done')
