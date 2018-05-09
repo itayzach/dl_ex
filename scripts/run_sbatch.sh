@@ -8,5 +8,5 @@
 #SBATCH --job-name="hw1"
 #SBATCH -o out/sbatch.%j.out # stdout goes here
 #SBATCH -e out/sbatch.%j.out # stderr goes here
-echo "running $1"
-python main.py --name=$1
+echo "running $@"
+python main.py $@

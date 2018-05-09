@@ -26,17 +26,17 @@ from torch.autograd import Variable
 import numpy as np
 import pandas as pd
 
-print("======================================================")
-print("starting...")
-print("======================================================")
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument('--net', choices=['resnet', 'vgg'])
-parser.add_argument('--optim', choices=['sgd', 'sgd_mom', ' adam'])
+parser.add_argument('--optim', choices=['sgd', 'sgd_momentum', 'adam'])
 parser.add_argument('--nEpochs', default=200, type=int)
 args = parser.parse_args()
 
+print("======================================================")
+print("starting...")
+print("======================================================")
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
@@ -73,12 +73,12 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 # =============================================================================
 print('==> Building model..')
 
-if args.net is resnet:
+if args.net == 'resnet':
     net = ResNet18()
-else if args.net is vgg:
+elif args.net == 'vgg':
     net = VGG('VGG19')
 else:
-    print('what?')
+    print('what is --net=' + args.net + '?')
     exit()
 # net = PreActResNet18()
 # net = GoogLeNet()
@@ -98,20 +98,20 @@ if args.resume:
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('./checkpoint/ckpt.t7')
+    checkpoint = torch.load('./checkpoint/ckpt' + '_' + args.net + '__' + args.optim + '.t7')
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     start_epoch = checkpoint['epoch']
 
 criterion = nn.CrossEntropyLoss()
-if args.optim is sgd:
+if args.optim is 'sgd':
     optimizer = optim.SGD(net.parameters(), lr=args.lr)
-else if args.optim is sgd_mom:
+elif args.optim == 'sgd_momentum':
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
-else if args.optim is adam:
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+elif args.optim == 'adam':
+    optimizer = optim.Adam(net.parameters(), lr=args.lr)
 else:
-    print('what?')
+    print('what is --optim=' + args.optim + '?')
     exit()
 
 
@@ -179,7 +179,7 @@ def test(epoch):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt.t7')
+        torch.save(state, './checkpoint/ckpt' + '_' + args.net + '__' + args.optim + '.t7')
         best_acc = acc
 
     return 100.*correct/total
@@ -212,7 +212,10 @@ for epoch in range(start_epoch, start_epoch+num_epochs):
     test_acc_vec  = np.append(test_acc_vec, test_acc)
 
 df = pd.DataFrame({'train_acc':train_acc_vec, 'test_acc':test_acc_vec})
-csv_file = args.net + '_' + args.optim + '.csv'
+if args.resume:
+    csv_file = args.net + '__' + args.optim + '_resume.csv'
+else:
+    csv_file = args.net + '__' + args.optim + '.csv'
 
 df.to_csv(csv_file, sep='\t', encoding='utf-8')
 print('==> done')
