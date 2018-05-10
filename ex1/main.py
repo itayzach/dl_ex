@@ -104,7 +104,7 @@ if args.resume:
     start_epoch = checkpoint['epoch']
 
 criterion = nn.CrossEntropyLoss()
-if args.optim is 'sgd':
+if args.optim == 'sgd':
     optimizer = optim.SGD(net.parameters(), lr=args.lr)
 elif args.optim == 'sgd_momentum':
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
@@ -217,6 +217,6 @@ if args.resume:
 else:
     csv_file = args.net + '__' + args.optim + '.csv'
 
-df.to_csv(csv_file, sep='\t', encoding='utf-8')
+df.to_csv(csv_file, index=False, sep='\t', encoding='utf-8')
 print('==> done')
 #df.plot('train_acc', 'test_acc')
