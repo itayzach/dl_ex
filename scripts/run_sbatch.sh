@@ -6,7 +6,7 @@
 # (change to your own email if you wish to get one, or just delete this and the following lines)
 #SBATCH --mail-type=ALL # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
 #SBATCH --job-name="hw1"
-#SBATCH -o out/sbatch.%j.out # stdout goes here
-#SBATCH -e out/sbatch.%j.out # stderr goes here
+#SBATCH -o %j.out # stdout goes here
+#SBATCH -e %j.out # stderr goes here
 echo "running $@"
 python main.py $@
