@@ -32,12 +32,15 @@ parser.add_argument('--resume', '-r', action='store_true', help='resume from che
 parser.add_argument('--net', choices=['resnet', 'vgg'])
 parser.add_argument('--optim', choices=['sgd', 'sgd_momentum', 'adam'])
 parser.add_argument('--nEpochs', default=200, type=int)
+parser.add_argument('--no_BN', action='store_true')
 args = parser.parse_args()
 
 print("======================================================")
 print("starting...")
 print("======================================================")
+print('==> args: ' + str(args))
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print('==> device: ' + device)
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 train_acc_vec = np.array([])
@@ -73,10 +76,14 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 # =============================================================================
 print('==> Building model..')
 
+job_name = args.net + '__' + args.optim
+if args.no_BN:
+    job_name += '_no_BN'
+
 if args.net == 'resnet':
-    net = ResNet18()
+    net = ResNet18(args.no_BN)
 elif args.net == 'vgg':
-    net = VGG('VGG19')
+    net = VGG('VGG19', args.no_BN)
 else:
     print('what is --net=' + args.net + '?')
     exit()
@@ -98,7 +105,7 @@ if args.resume:
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('./checkpoint/ckpt' + '_' + args.net + '__' + args.optim + '.t7')
+    checkpoint = torch.load('./checkpoint/ckpt' + '_' + job_name + '.t7')
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     start_epoch = checkpoint['epoch']
@@ -113,7 +120,6 @@ elif args.optim == 'adam':
 else:
     print('what is --optim=' + args.optim + '?')
     exit()
-
 
 # =============================================================================
 # Training
@@ -179,7 +185,7 @@ def test(epoch):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt' + '_' + args.net + '__' + args.optim + '.t7')
+        torch.save(state, './checkpoint/ckpt' + '_' + job_name + '.t7')
         best_acc = acc
 
     return 100.*correct/total
@@ -212,10 +218,11 @@ for epoch in range(start_epoch, start_epoch+num_epochs):
     test_acc_vec  = np.append(test_acc_vec, test_acc)
 
 df = pd.DataFrame({'train_acc':train_acc_vec, 'test_acc':test_acc_vec})
+
+csv_file = job_name
 if args.resume:
-    csv_file = args.net + '__' + args.optim + '_resume.csv'
-else:
-    csv_file = args.net + '__' + args.optim + '.csv'
+    csv_file += '_resume'
+csv_file += '.csv'
 
 df.to_csv(csv_file, index=False, sep='\t', encoding='utf-8')
 print('==> done')
