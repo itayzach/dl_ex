@@ -90,6 +90,10 @@ else:
 # net = DPN92()
 # net = ShuffleNetG2()
 # net = SENet18()
+
+print('Net:')
+print(net)
+
 net = net.to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
@@ -139,8 +143,6 @@ def train(epoch):
 
     progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
         % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    # print('\nTrain : Loss: %.3f | Acc: %.3f%% (%d/%d)'
-    #     % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
     return 100.*correct/total
 
 # =============================================================================
@@ -165,8 +167,6 @@ def test(epoch):
 
     progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
         % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    # print('Test  : Loss: %.3f | Acc: %.3f%% (%d/%d)'
-    #     % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
     # Save checkpoint.
     acc = 100.*correct/total

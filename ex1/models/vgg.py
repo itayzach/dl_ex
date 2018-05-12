@@ -27,7 +27,6 @@ class VGG(nn.Module):
     def _make_layers(self, cfg, no_BN):
         layers = []
         in_channels = 3
-        print('no_BN = ' + str(no_BN))
         for x in cfg:
             if x == 'M':
                 layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
@@ -35,12 +34,10 @@ class VGG(nn.Module):
                 if no_BN:
                     layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
                                nn.ReLU(inplace=True)]
-                    print('not using BN')
                 else:
                     layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
                                nn.BatchNorm2d(x),
                                nn.ReLU(inplace=True)]
-                    print('using BN')
                 in_channels = x
         layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
         return nn.Sequential(*layers)
