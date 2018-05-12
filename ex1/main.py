@@ -17,12 +17,6 @@ from models import *
 from utils import progress_bar
 from torch.autograd import Variable
 
-#import matplotlib.pyplot as plt
-#import plotly
-#import plotly.plotly as py
-#import plotly.graph_objs as go
-#plotly.tools.set_credentials_file(username='zitay.zach', api_key='2DEBzwCa8E9edY7ulxoz')
-
 import numpy as np
 import pandas as pd
 
@@ -190,22 +184,6 @@ def test(epoch):
 
     return 100.*correct/total
 
-#def plot_acc_vs_epoch(num_epochs, train_acc_vec, test_acc_vec):
-#    #fig, ax = plt.subplots(figsize=(12, 8))
-#    #ax.plot(np.arange(num_epochs), train_acc_vec, test_acc_vec, 'r')
-#    #ax.set_xlabel('Epoch')
-#    #ax.set_ylabel('Accuracy [%]')
-#    #ax.set_title('Accuracy vs. Training Epoch')
-#
-#    trace = go.Scatter(
-#        x = np.arange(num_epochs),
-#        y = train_acc_vec
-#    )
-#
-#    data = [trace]
-#
-#    py.iplot(data, filename='basic-line')
-
 
 
 # =============================================================================
@@ -226,4 +204,3 @@ csv_file += '.csv'
 
 df.to_csv(csv_file, index=False, sep='\t', encoding='utf-8')
 print('==> done')
-#df.plot('train_acc', 'test_acc')
